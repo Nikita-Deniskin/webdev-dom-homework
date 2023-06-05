@@ -8,64 +8,231 @@
 
   <body>
     <div class="container">
-      <ul class="comments">
-        <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-        </li>
+      <ul id="list" class="comments">
       </ul>
       <div class="add-form">
-        <input
+        <input id="input_name"
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
         />
-        <textarea
+        <textarea id="input_comment"
           type="textarea"
           class="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
         ></textarea>
         <div class="add-form-row">
-          <button class="add-form-button">Написать</button>
+          <button id="add_button" class="add-form-button">Написать</button>
         </div>
       </div>
     </div>
-  </body>
+
+  <style>
+    .error {
+      animation: 1.2s  trambling-animation;
+    }
+    @keyframes trambling-animation {
+      0%, 50%, 100% {
+          transform: rotate(0deg);
+      }
+      10%, 30% {
+          transform: rotate(-10deg);
+      }
+      20%, 40% {
+          transform: rotate(10deg);
+      }
+  }
+  </style>
 
   <script>
-    "use strict";
-    // Код писать здесь
-    console.log("It works!");
+    const commentsList = document.getElementById ("list");
+    const inputName = document.getElementById ("input_name");
+    const inputComment = document.getElementById ("input_comment");
+    const addButton = document.getElementById ("add_button");
+    
+
+
+    function feedbackComment () {
+      const feedbackButtons = document.querySelectorAll(".comment");
+      for (const feedbackButton of feedbackButtons) {
+        feedbackButton.addEventListener ("click", () => {
+          const feedbackName = feedbackButton.querySelector(".comment-header div:first-child").textContent;
+          const feedbackText = feedbackButton.querySelector(".comment-text").textContent;
+          inputComment.value = `>${feedbackText.trim()}\n${feedbackName}, `;
+          inputComment.focus();
+        })
+      }
+    }
+    let comments = [
+    // {
+    //     name: 'Глеб Фокин',
+    //     date: '12.02.22 12:18',
+    //     text: 'Это будет первый комментарий на этой странице',
+    //     likes: 3,
+    //     isLiked: false
+    //   },
+    //   {
+    //     name: 'Варвара Н.',
+    //     date: '13.02.22 19:22',
+    //     text: 'Мне нравится как оформлена эта страница! ❤',
+    //     likes: 75,
+    //     isLiked: true
+    //   }
+    ];
+    const needTrueDate = (date) => {
+      const newDate = new Date(Date.parse(date));
+      const year = newDate.getFullYear().toString().slice(2);
+      const month = ("0" + (newDate.getMonth() + 1)).slice(-2);
+      const day = ("0" + newDate.getDate()).slice(-2);
+      const hours = ("0" + newDate.getHours()).slice(-2);
+      const minutes = ("0" + newDate.getMinutes()).slice(-2);
+      return `${day}.${month}.${year} ${hours}:${minutes}`;
+    }
+
+    const receivedComments = () => {
+      return fetch ("https://wedev-api.sky.pro/api/v1/:den_nik1/comments",{
+        method: "GET"
+      })
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseData) => {
+        const appComments = responseData.comments.map((comment) => {
+          return {
+            name: comment.author.name,
+            date: needTrueDate(comment.date),
+            text: comment.text,
+            likes: comment.likes,
+            isLiked: false,
+          }
+        });
+        comments = appComments;
+        renderAllComments();
+      })
+    }
+
+    receivedComments();
+
+    const updateComments = () => {
+        fetch("https://wedev-api.sky.pro/api/v1/:den_nik1/comments", {
+          method: "POST",
+          body: JSON.stringify({
+            name: inputName.value,
+            text: inputComment.value,
+          }),
+        })
+        .then((response) => {
+          return response.json();
+        })
+        .then(() => {
+          return receivedComments();
+        })
+        .then(() => {
+          addButton.disabled = false;
+          addButton.textContent = "Написать";
+        });
+
+        renderAllComments();
+
+        inputName.value = '';
+        inputComment.value = '';
+      }
+
+      function addLike () {
+      const likeButton = document.querySelectorAll(".like-button");
+      for (let i = 0; i < likeButton.length; i++) {
+      likeButton[i].addEventListener ("click", (event) => {
+        event.stopPropagation();
+        if (comments[i].isLiked === true){
+          comments[i].isLiked = false;
+          comments[i].likes --;
+        }
+        else if (comments[i].isLiked === false){
+          comments[i].isLiked = true;
+          comments[i].likes ++;
+        }
+        renderAllComments();
+      })  
+      }
+    }  
+
+    function renderAllComments () {
+        const htmlData = comments
+        .map((comment) => {
+          return `
+          <li class="comment">
+          <div class="comment-header">
+            <div>${comment.name}</div>
+            <div>${comment.date}</div>
+          </div>
+          <div class="comment-body">
+            <div class="comment-text">
+              ${comment.text}
+            </div>
+          </div>
+          <div class="comment-footer">
+            <div class="likes">
+              <span class="likes-counter">${comment.likes}</span>
+              <button class="${comment.isLiked === true ? `like-button -active-like` : `like-button`}"></button>
+            </div>
+          </div>
+        </li> `
+        })
+        .join ("");
+        commentsList.innerHTML = htmlData;
+        addLike();
+        feedbackComment();
+      }
+    renderAllComments();
+
+    const messageElement = document.createElement('div');
+      messageElement.classList.add('message');
+      messageElement.textContent = 'Пожалуйста, подождите, комментарии загружаются...';
+      commentsList.append(messageElement);
+      
+    addButton.addEventListener ("click", () => {    
+       inputName.classList.remove("error");
+       inputComment.classList.remove("error");
+      if (inputName.value === "" ||  inputComment.value === "") {
+        if (inputName.value === "") {
+          inputName.classList.add("error");
+        }
+        if ( inputComment.value === "") {
+          inputComment.classList.add("error");
+        }
+        return;
+    }
+
+    addButton.disabled = true;
+    addButton.textContent = "Комментарий добавляется...";
+
+    updateComments();
+
+    const currentDate = new Date();
+    const date = currentDate.getDate().toString().padStart(2, "0");
+      const month = (currentDate.getMonth() + 1).toString().padStart(2, "0");
+      const year = currentDate.getFullYear().toString().substr(-2);
+      const hours = currentDate.getHours().toString().padStart(2, "0");
+      const minutes = currentDate.getMinutes().toString().padStart(2, "0");
+      let needDate = (`${date}.${month}.${year} ${hours}:${minutes}`);
+
+    // comments.push ({
+    //     name: inputName.value.replaceAll("&", "&amp;")
+    //     .replaceAll("<", "&lt;")
+    //     .replaceAll(">", "&gt;")
+    //     .replaceAll('"', "&quot;"),
+    //     date: needDate,
+    //     text: inputComment.value.replaceAll("&", "&amp;")
+    //     .replaceAll("<", "&lt;")
+    //     .replaceAll(">", "&gt;")
+    //     .replaceAll('"', "&quot;"),
+    //     likes: 0,
+    //     isLiked: false
+    //   }); 
+    
+    receivedComments();
+  })
   </script>
+  </body>
 </html>
