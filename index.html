@@ -91,7 +91,7 @@
     }
 
     const receivedComments = () => {
-      return fetch ("https://wedev-api.sky.pro/api/v1/:den_nik1/comments",{
+      return fetch ("https://wedev-api.sky.pro/api/v1/:den_nik22/comments",{
         method: "GET"
       })
       .then((response) => {
@@ -115,7 +115,7 @@
     receivedComments();
 
     const updateComments = () => {
-        fetch("https://wedev-api.sky.pro/api/v1/:den_nik1/comments", {
+        fetch("https://wedev-api.sky.pro/api/v1/:den_nik22/comments", {
           method: "POST",
           body: JSON.stringify({
             name: inputName.value,
@@ -123,7 +123,14 @@
           }),
         })
         .then((response) => {
-          return response.json();
+          console.log(response);
+          if (inputName.value.length <= 2 | inputComment.value.length <= 2) {
+            alert ("Поля ввода формы должны содержать не менее 2 символов");
+          }
+          else {
+            return response.json();
+          }
+
         })
         .then(() => {
           return receivedComments();
@@ -131,12 +138,19 @@
         .then(() => {
           addButton.disabled = false;
           addButton.textContent = "Написать";
-        });
+          inputName.value = '';
+          inputComment.value = '';
+        })
+        .catch((networkError) => {
+          addButton.disabled = false;
+          addButton.textContent = "Написать";
+          alert("Упс, что-то пошло не так.")
+          // TODO:  Отправлять в систему сбора ошибок
+          console.warn(networkError);
+        })
 
         renderAllComments();
 
-        inputName.value = '';
-        inputComment.value = '';
       }
 
       function addLike () {
