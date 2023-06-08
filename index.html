@@ -112,6 +112,7 @@
       })
     }
 
+
     receivedComments();
 
     const updateComments = () => {
@@ -120,17 +121,17 @@
           body: JSON.stringify({
             name: inputName.value,
             text: inputComment.value,
+            forceError: true
           }),
         })
         .then((response) => {
-          console.log(response);
-          if (inputName.value.length <= 2 | inputComment.value.length <= 2) {
-            alert ("Поля ввода формы должны содержать не менее 2 символов");
+          if (response.status === 500) {
+            throw new Error('Сервер упал');
           }
-          else {
-            return response.json();
+          if (response.status === 400) {
+            throw new Error('Неверный запрос');
           }
-
+          return response.json();
         })
         .then(() => {
           return receivedComments();
@@ -141,13 +142,18 @@
           inputName.value = '';
           inputComment.value = '';
         })
-        .catch((networkError) => {
+        .catch((error) => {
+          console.warn(error);
           addButton.disabled = false;
           addButton.textContent = "Написать";
-          alert("Упс, что-то пошло не так.")
-          // TODO:  Отправлять в систему сбора ошибок
-          console.warn(networkError);
-        })
+          if (error.message === 'Сервер упал') {
+            alert('Сервер упал');
+          } else if (error.message === 'Неверный запрос') {
+            alert('Имя и комментарий должны быть не короче 3-х символов');
+          } else {
+            alert('Кажется, что-то пошло не так, повторите позже');
+          }
+        });
 
         renderAllComments();
 
