@@ -8,43 +8,12 @@
 
   <body>
     <div class="container">
-      <ul id="list" class="comments">
-      </ul>
-      <div class="add-form">
-        <input id="input_name"
-          type="text"
-          class="add-form-name"
-          placeholder="Введите ваше имя"
-        />
-        <textarea id="input_comment"
-          type="textarea"
-          class="add-form-text"
-          placeholder="Введите ваш коментарий"
-          rows="4"
-        ></textarea>
-        <div class="add-form-row">
-          <button id="add_button" class="add-form-button">Написать</button>
-        </div>
-      </div>
+      <div id="app"></div>
     </div>
 
-  <style>
-    .error {
-      animation: 1.2s  trambling-animation;
-    }
-    @keyframes trambling-animation {
-      0%, 50%, 100% {
-          transform: rotate(0deg);
-      }
-      10%, 30% {
-          transform: rotate(-10deg);
-      }
-      20%, 40% {
-          transform: rotate(10deg);
-      }
-  }
-  </style>
 
-  <script type="module" src="modulesjs/index.js"></script>
+
+  <script type="module" src="index.js"></script>
+
   </body>
 </html>
