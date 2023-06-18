@@ -3,6 +3,7 @@ let comments = [];
 let loadingComments = true;
 let isLoadingAdd = false;
 
+import { format } from "date-fns"; 
 import {fetchPost, getComments } from "./API.js";
 import { renderLogin, name } from "./login.js";
 
@@ -11,9 +12,12 @@ const getFetch = () => {
   return getComments({ token })
     .then((responseData) => {
       const appComments = responseData.comments.map((comment) => {
+        let trueDate = new Date(comment.date);
+        trueDate.setHours(trueDate.getHours());
+        const needTrueDate = format(trueDate, 'yyyy-MM-dd HH.mm.ss');
         return {
           name: comment.author.name,
-          date: new Date(comment.date).toLocaleString('ru'),
+          date: needTrueDate,
           text: comment.text,
           likes: comment.likes,
           isLiked: comment.isLiked,
